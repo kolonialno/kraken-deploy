@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "kraken"
+version = "0.1.0"
+description = "A better octopus 🐙"
+authors = ["Oda <tech@oda.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^1.9.0"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
+flake8 = "^4.0.1"
+flake8-bugbear = "^22.3.20"
+isort = "^5.10.1"
+mypy = "^0.941"
+pytest = "^7.1.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+src = ["kraken", "tests"]
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+src_paths= ["kraken", "test"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["kraken", "tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
