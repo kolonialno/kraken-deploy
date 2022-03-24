@@ -7,7 +7,7 @@ def maybe_deploy_next(
 ) -> Commit | None:
 
     latest_deployment = client.get_latest_deployment(environment=environment)
-    commits = client.get_commits(branch="main")
+    commits = client.get_commits()
 
     if latest_deployment is None:
 
@@ -22,7 +22,7 @@ def maybe_deploy_next(
 
         latest_sha = latest_deployment.sha
 
-        undeployed_commits = client.get_commits_after(branch="main", ref=latest_sha)
+        undeployed_commits = client.get_commits_after(ref=latest_sha)
         if not undeployed_commits:
             return None
 

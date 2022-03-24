@@ -5,19 +5,19 @@ from kraken.github import Client, Commit
 
 def test_commit(client: Client, commit: Commit) -> None:
     assert commit is not None
-    assert commit in client.get_commits(branch="main")
+    assert commit in client.get_commits()
 
 
 def test_make_commit(client: Client, make_commit: Callable) -> None:
-    assert client.get_commits(branch="main", page=1) == []
+    assert client.get_commits(page=1) == []
     commit1 = make_commit(sha="foo")
-    assert client.get_commits(branch="main", page=1) == [commit1]
-    assert client.get_commits(branch="main", page=2) == []
+    assert client.get_commits(page=1) == [commit1]
+    assert client.get_commits(page=2) == []
 
     commit2 = make_commit(sha="bar")
     assert commit1 != commit2
-    assert client.get_commits(branch="main", page=1) == [commit2]
-    assert client.get_commits(branch="main", page=2) == [commit1]
+    assert client.get_commits(page=1) == [commit2]
+    assert client.get_commits(page=2) == [commit1]
 
 
 def test_successful_deploy(

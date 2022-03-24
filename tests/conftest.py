@@ -42,15 +42,14 @@ class MockClient:
             ),
         )
 
-    def get_commits(self, *, branch: str, page: int = 1) -> list[Commit]:
+    def get_commits(self, *, page: int = 1) -> list[Commit]:
         assert page > 0
-        assert branch == "main"
         limit = 1
         offset = (page - 1) * limit
 
         return self.commits[offset : offset + limit]
 
-    def get_commits_after(self, *, branch: str, ref: str) -> list[Commit]:
+    def get_commits_after(self, *, ref: str) -> list[Commit]:
         return list(itertools.takewhile(lambda commit: commit.sha != ref, self.commits))
 
     def get_check_runs(self, *, ref: str) -> list[CheckRun]:

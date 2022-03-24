@@ -13,8 +13,8 @@ def main() -> None:
     maybe_deploy_next(
         client=client,
         environment="prod",
-        # TODO: Find a way to provide rules as input
-        rules=[],
+        # TODO: Find a way to provide conditions as input
+        conditions=[],
     )
 
 

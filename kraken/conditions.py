@@ -34,7 +34,7 @@ def check_check_run(
 def check_deploy(*, client: Client, condition: RequiredDeploy, commit: Commit) -> bool:
 
     commits = {commit.sha} | {
-        c.sha for c in reversed(client.get_commits_after(branch="main", ref=commit.sha))
+        c.sha for c in reversed(client.get_commits_after(ref=commit.sha))
     }
 
     for sha in commits:
