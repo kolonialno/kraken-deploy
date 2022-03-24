@@ -29,5 +29,22 @@ on:
 
 jobs:
   deploy:
-    ...
+    steps:
+     - uses: kolonialno/kraken-deploy@main
+       with:
+         environments: |
+           [
+             {
+               "name": "prod",
+               "conditions": [
+                 {"type": "deploy", "environment": "staging"}
+               ]
+             },
+             {
+               "name": "staging",
+               "conditions": [
+                 {"type": "check-run", "name": "pytest"}
+               ]
+             }
+           ]
 ```

@@ -1,21 +1,43 @@
+import argparse
+
+import pydantic
+
+from .conditions import Condition
 from .deploy import maybe_deploy_next
 from .github import GithubClient
 from .settings import Settings
 
 
+class EnvironmentConfig(pydantic.BaseModel):
+    name: str
+    conditions: list[Condition]
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "environments",
+        type=str,
+        help="JSON containing configuration for each environments",
+    )
+
+    args = parser.parse_args()
+
     settings = Settings()
     client = GithubClient(
         repo=settings.GITHUB_REPOSITORY,
         base_url=settings.GITHUB_API_URL,
         token=settings.GITHUB_TOKEN,
     )
-    maybe_deploy_next(
-        client=client,
-        environment="prod",
-        # TODO: Find a way to provide conditions as input
-        conditions=[],
-    )
+
+    environments = pydantic.parse_raw_as(list[EnvironmentConfig], args.environments)
+    for environment in environments:
+        print(f"Checking {environment.name}")
+        maybe_deploy_next(
+            client=client,
+            environment=environment.name,
+            conditions=environment.conditions,
+        )
 
 
 if __name__ == "__main__":
