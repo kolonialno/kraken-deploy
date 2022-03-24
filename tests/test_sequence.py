@@ -2,7 +2,6 @@ from typing import Callable
 
 from kraken.deploy import maybe_deploy_next
 from kraken.github import Client, Commit
-from kraken.strategies import Strategy
 
 
 def test_first_deploy(client: Client, make_commit: Callable[..., Commit]) -> None:
@@ -10,7 +9,7 @@ def test_first_deploy(client: Client, make_commit: Callable[..., Commit]) -> Non
     commit_2 = make_commit(sha="bar")
 
     deployed_commit = maybe_deploy_next(
-        client=client, environment="prod", rollout_strategy=Strategy.NO_SKIP
+        client=client, environment="prod", conditions=[]
     )
     assert deployed_commit == commit_2
 
@@ -29,7 +28,7 @@ def test_nothing_more_to_deploy(
     make_successful_deployment(environment="prod", commit=commit.sha)
 
     deployed_commit = maybe_deploy_next(
-        client=client, environment="prod", rollout_strategy=Strategy.NO_SKIP
+        client=client, environment="prod", conditions=[]
     )
     assert not deployed_commit
 
@@ -45,6 +44,6 @@ def test_deploy_next_commit(
     make_successful_deployment(environment="prod", commit=commit_1.sha)
 
     deployed_commit = maybe_deploy_next(
-        client=client, environment="prod", rollout_strategy=Strategy.NO_SKIP
+        client=client, environment="prod", conditions=[]
     )
     assert deployed_commit == commit_2

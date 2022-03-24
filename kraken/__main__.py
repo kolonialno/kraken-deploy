@@ -1,7 +1,6 @@
 from .deploy import maybe_deploy_next
 from .github import GithubClient
 from .settings import Settings
-from .strategies import Strategy
 
 
 def main() -> None:
@@ -12,7 +11,10 @@ def main() -> None:
         token=settings.GITHUB_TOKEN,
     )
     maybe_deploy_next(
-        client=client, environment="prod", rollout_strategy=Strategy.NO_SKIP
+        client=client,
+        environment="prod",
+        # TODO: Find a way to provide rules as input
+        rules=[],
     )
 
 

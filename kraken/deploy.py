@@ -1,11 +1,9 @@
-import itertools
-
+from .conditions import Condition, check_conditions
 from .github import Client, Commit
-from .strategies import Strategy, choose_commit_to_deploy
 
 
 def maybe_deploy_next(
-    *, client: Client, environment: str, rollout_strategy: Strategy
+    *, client: Client, environment: str, conditions: list[Condition]
 ) -> Commit | None:
 
     latest_deployment = client.get_latest_deployment(environment=environment)
@@ -13,6 +11,7 @@ def maybe_deploy_next(
 
     if latest_deployment is None:
 
+        # If there's no pre-existing deployments, deploy the newest commit
         commit_to_deploy = commits[0]
 
     elif not latest_deployment.is_done:
@@ -23,21 +22,19 @@ def maybe_deploy_next(
 
         latest_sha = latest_deployment.sha
 
-        # Load commits until we find the last deployed commit
-        i = 1
-        while not any(commit.sha == latest_sha for commit in commits):
-            commits.extend(client.get_commits(branch="main", page=i))
-            i += 1
-
-        undeployed_commits = list(
-            itertools.takewhile(lambda commit: commit.sha != latest_sha, commits)
-        )
+        undeployed_commits = client.get_commits_after(branch="main", ref=latest_sha)
         if not undeployed_commits:
             return None
 
-        commit_to_deploy = choose_commit_to_deploy(
-            client=client, strategy=rollout_strategy, commits=undeployed_commits
-        )
+        # Always deploy the oldest commit that's not deployed yet. In the
+        # future we might want to allow more complex logic here, like skipping
+        # a commit if we have a long deploy queue
+        commit_to_deploy = undeployed_commits[-1]
+
+    if not check_conditions(
+        client=client, commit=commit_to_deploy, conditions=conditions
+    ):
+        return None
 
     print(f"Create deployment: {commit_to_deploy}")
 

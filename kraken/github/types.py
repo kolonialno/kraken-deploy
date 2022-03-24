@@ -51,3 +51,19 @@ class Commit(pydantic.BaseModel):
     sha: str
     html_url: str
     commit: CommitDetails
+
+
+class CheckRunConclusion(str, Enum):
+    ACTION_REQUIRED = "action_required"
+    CANCELLED = "cancelled"
+    FAILURE = "failure"
+    NEUTRAL = "neutral"
+    SUCCESS = "success"
+    SKIPPED = "skipped"
+    STALE = "stale"
+    TIMED_OUT = "timed_out"
+
+
+class CheckRun(pydantic.BaseModel):
+    name: str
+    conclusion: CheckRunConclusion | None

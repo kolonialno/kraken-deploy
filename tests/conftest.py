@@ -1,19 +1,46 @@
+import itertools
 from datetime import datetime, timezone
 from typing import Callable
 
 import pytest
 
-from kraken.github import Commit, Deployment
-from kraken.github.types import DeploymentState, DeploymentStatus
+from kraken.github import CheckRunConclusion, Client, Commit, Deployment
+from kraken.github.types import CheckRun, DeploymentState, DeploymentStatus
 
 
 class MockClient:
     def __init__(self) -> None:
         self.commits: list[Commit] = []
-        self.deployments: dict[str, Deployment] = {}
+        self.deployments: dict[str, list[Deployment]] = {}
+        self.check_runs: dict[str, list[CheckRun]] = {}
 
-    def get_latest_deployment(self, *, environment: str) -> Deployment | None:
-        return self.deployments.get(environment, None)
+    def get_latest_deployment(
+        self, *, environment: str, ref: str | None = None
+    ) -> Deployment | None:
+        deployments = self.deployments.get(environment, [])
+        if ref:
+            return next(
+                (deployment for deployment in deployments if deployment.sha == ref),
+                None,
+            )
+
+        return deployments[0] if deployments else None
+
+    def create_deployment(self, *, environment: str, commit: str) -> None:
+        assert any(c.sha == commit for c in self.commits)
+        self.deployments.setdefault(environment, [])
+        self.deployments[environment].insert(
+            0,
+            Deployment(
+                sha=commit,
+                task="deploy",
+                environment=environment,
+                description="",
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+                statuses=[],
+            ),
+        )
 
     def get_commits(self, *, branch: str, page: int = 1) -> list[Commit]:
         assert page > 0
@@ -23,21 +50,15 @@ class MockClient:
 
         return self.commits[offset : offset + limit]
 
-    def create_deployment(self, *, environment: str, commit: str) -> None:
-        assert any(c.sha == commit for c in self.commits)
-        self.deployments[environment] = Deployment(
-            sha=commit,
-            task="deploy",
-            environment=environment,
-            description="",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
-            statuses=[],
-        )
+    def get_commits_after(self, *, branch: str, ref: str) -> list[Commit]:
+        return list(itertools.takewhile(lambda commit: commit.sha != ref, self.commits))
+
+    def get_check_runs(self, *, ref: str) -> list[CheckRun]:
+        return self.check_runs.get(ref, [])
 
 
 @pytest.fixture
-def client() -> MockClient:
+def client() -> Client:
     return MockClient()
 
 
@@ -69,11 +90,25 @@ def commit(make_commit: Callable[..., Commit]) -> Commit:
 
 
 @pytest.fixture
+def make_check_run(client: MockClient) -> Callable[..., None]:
+    def inner(
+        *,
+        ref: str,
+        name: str,
+        conclusion: CheckRunConclusion = CheckRunConclusion.SUCCESS,
+    ) -> None:
+        client.check_runs.setdefault(ref, [])
+        client.check_runs[ref].append(CheckRun(name="pytest", conclusion=conclusion))
+
+    return inner
+
+
+@pytest.fixture
 def create_deployment_status(client: MockClient):
     def inner(*, environment: str, state: DeploymentState) -> DeploymentStatus:
         assert environment in client.deployments, "Deployment must exist"
         status = DeploymentStatus(state=state, description="", log_url="")
-        deployment = client.deployments[environment]
+        deployment = client.deployments[environment][0]
         deployment.statuses.insert(0, status)
         return status
 

@@ -1,3 +1,4 @@
+import itertools
 import json
 from typing import Any, Protocol
 from urllib.parse import urlencode
@@ -5,17 +6,25 @@ from urllib.request import Request, urlopen
 
 from pydantic import parse_obj_as
 
-from .types import Commit, Deployment
+from .types import CheckRun, Commit, Deployment
 
 
 class Client(Protocol):
-    def get_latest_deployment(self, *, environment: str) -> Deployment | None:
+    def get_latest_deployment(
+        self, *, environment: str, ref: str | None = ...
+    ) -> Deployment | None:
+        ...
+
+    def create_deployment(self, *, environment: str, commit: str) -> None:
         ...
 
     def get_commits(self, *, branch: str, page: int = ...) -> list[Commit]:
         ...
 
-    def create_deployment(self, *, environment: str, commit: str) -> None:
+    def get_commits_after(self, *, branch: str, ref: str) -> list[Commit]:
+        ...
+
+    def get_check_runs(self, *, ref: str) -> list[CheckRun]:
         ...
 
 
@@ -25,15 +34,19 @@ class GithubClient:
         self.base_url = base_url
         self.token = token
 
-    def get_latest_deployment(self, *, environment: str) -> Deployment | None:
+    def get_latest_deployment(
+        self, *, environment: str, ref: str | None = None
+    ) -> Deployment | None:
         """
         Get the latest deployment, including statuses, in the given environment
         """
 
+        params = {"environment": environment, "per_page": "1"}
+        if ref:
+            params["ref"] = ref
+
         deployments = self._request(
-            "GET",
-            f"/repos/{self.repo}/deployments",
-            params={"environment": environment, "per_page": "1"},
+            "GET", f"/repos/{self.repo}/deployments", params=params
         )
 
         if not deployments:
@@ -57,6 +70,16 @@ class GithubClient:
 
         return parse_obj_as(list[Commit], data)
 
+    def get_commits_after(self, *, branch: str, ref: str) -> list[Commit]:
+        commits: list[Commit] = []
+        # Load commits until we find the last deployed commit
+        i = 1
+        while not any(commit.sha == ref for commit in commits):
+            commits.extend(self.get_commits(branch=branch, page=i))
+            i += 1
+
+        return list(itertools.takewhile(lambda commit: commit.sha != ref, commits))
+
     def create_deployment(self, *, environment: str, commit: str) -> None:
 
         print(f"Create deployment in {environment}: {commit}")
@@ -66,6 +89,14 @@ class GithubClient:
             f"/repos/{self.repo}/deployments",
             data={"environment": environment, "ref": commit},
         )
+
+    def get_check_runs(self, *, ref: str) -> list[CheckRun]:
+
+        response = self._request(
+            "GET",
+            f"/repos/{self.repo}/commits/{ref}/check-runs",
+        )
+        return parse_obj_as(list[CheckRun], response)
 
     def _request(
         self,
