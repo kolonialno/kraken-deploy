@@ -25,7 +25,7 @@ class Deployment(pydantic.BaseModel):
     sha: str
     task: str
     environment: str
-    description: str
+    description: str | None
     created_at: datetime
     updated_at: datetime
     statuses: list[DeploymentStatus]
@@ -44,7 +44,7 @@ class User(pydantic.BaseModel):
 class CommitDetails(pydantic.BaseModel):
     message: str
     author: User
-    commiter: User
+    committer: User
 
 
 class Commit(pydantic.BaseModel):

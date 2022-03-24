@@ -50,7 +50,11 @@ def make_commit(client: MockClient) -> Callable[..., Commit]:
             {
                 "sha": sha,
                 "html_url": f"https://example.com/commits/{sha}",
-                "commit": {"message": "Hello world!", "author": user, "commiter": user},
+                "commit": {
+                    "message": "Hello world!",
+                    "author": user,
+                    "committer": user,
+                },
             }
         )
         client.commits.insert(0, commit)
@@ -102,5 +106,16 @@ def fail_deploy(create_deployment_status: Callable[..., DeploymentStatus]):
         return create_deployment_status(
             environment=environment, state=DeploymentState.FAILURE
         )
+
+    return inner
+
+
+@pytest.fixture
+def make_successful_deployment(
+    client: MockClient, finish_deploy: Callable[..., None]
+) -> Callable[..., None]:
+    def inner(*, environment: str, commit: str) -> None:
+        client.create_deployment(environment=environment, commit=commit)
+        finish_deploy(environment=environment)
 
     return inner
