@@ -6,7 +6,7 @@ from urllib.request import Request, urlopen
 
 from pydantic import parse_obj_as
 
-from .types import CheckRun, Commit, Deployment
+from .types import CheckRun, CheckRunResponse, Commit, Deployment
 
 
 class Client(Protocol):
@@ -96,7 +96,7 @@ class GithubClient:
             "GET",
             f"/repos/{self.repo}/commits/{ref}/check-runs",
         )
-        return parse_obj_as(list[CheckRun], response)
+        return CheckRunResponse.parse_obj(response).check_runs
 
     def _request(
         self,

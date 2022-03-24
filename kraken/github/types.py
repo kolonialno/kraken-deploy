@@ -67,3 +67,8 @@ class CheckRunConclusion(str, Enum):
 class CheckRun(pydantic.BaseModel):
     name: str
     conclusion: CheckRunConclusion | None
+
+
+class CheckRunResponse(pydantic.BaseModel):
+    total_count: int
+    check_runs: list[CheckRun]
