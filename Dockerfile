@@ -4,8 +4,6 @@ WORKDIR /app
 
 FROM base AS builder
 
-COPY pyproject.toml poetry.lock .
-
 ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -16,11 +14,11 @@ RUN pip install "poetry==$POETRY_VERSION"
 RUN python -m venv /venv
 
 # Build and install dependencies
-COPY pyproject.toml poetry.toml poetry.lock .
+COPY pyproject.toml poetry.toml poetry.lock ./
 RUN poetry install
 
 # Build and install project
-COPY kraken .
+COPY kraken ./
 RUN poetry build && /venv/bin/pip install dist/*.whl
 
 FROM base AS final
