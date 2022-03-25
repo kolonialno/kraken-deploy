@@ -11,24 +11,24 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
 
 RUN apk add --no-cache gcc libffi-dev musl-dev openssl-dev cargo
 RUN pip install "poetry==$POETRY_VERSION"
-RUN python -m venv /venv
+RUN python -m venv .venv
 
 # Build and install dependencies
 COPY pyproject.toml poetry.toml poetry.lock ./
 RUN poetry install
 
 # Build and install project
-COPY kraken ./
-RUN poetry build && /venv/bin/pip install dist/*.whl
+COPY kraken .
+RUN poetry build && .venv/bin/pip install dist/*.whl
 
 FROM base AS final
 
 RUN apk add --no-cache libffi
 
 # Copy virtualenv from the builder
-COPY --from=builder /venv /venv
+COPY --from=builder /app/.venv /app/.venv
 
-ENV PATH="/venv/bin:$PATH" \
-    VIRTUAL_ENV="/venv"
+ENV PATH="/app/.venv/bin:$PATH" \
+    VIRTUAL_ENV="/app/.venv"
 
 ENTRYPOINT ["python", "-m", "kraken"]
