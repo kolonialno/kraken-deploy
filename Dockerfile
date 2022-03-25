@@ -16,7 +16,7 @@ RUN pip install "poetry==$POETRY_VERSION"
 RUN python -m venv /venv
 
 # Build and install dependencies
-COPY pyproject.toml poetry.toml poetry.lock .
+COPY pyproject.toml poetry.toml poetry.lock ./
 RUN poetry export -f requirements.txt | /venv/bin/pip install -r /dev/stdin
 
 # Build and install project
