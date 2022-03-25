@@ -20,7 +20,7 @@ COPY pyproject.toml poetry.toml poetry.lock ./
 RUN poetry export -f requirements.txt | /venv/bin/pip install -r /dev/stdin
 
 # Build and install project
-COPY kraken .
+COPY kraken ./
 RUN poetry build && /venv/bin/pip install dist/*.whl
 
 FROM base AS final
