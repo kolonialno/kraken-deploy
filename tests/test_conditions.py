@@ -76,3 +76,43 @@ def test_required_deployment(
     )
 
     assert deployed_commit == commit
+
+
+def test_skip_failed_commit(
+    client: Client,
+    make_commit: Callable[..., Commit],
+    make_check_run: Callable[..., None],
+    finish_deploy: Callable[..., None],
+) -> None:
+    commit_1 = make_commit(sha="foo")
+    make_check_run(
+        ref=commit_1.sha, name="pytest", conclusion=CheckRunConclusion.SUCCESS
+    )
+
+    deployed_commit = maybe_deploy_next(
+        client=client,
+        environment="prod",
+        conditions=[
+            RequiredCheckRun(type="check-run", name="pytest"),
+        ],
+    )
+    assert deployed_commit == commit_1
+    finish_deploy(environment="prod")
+
+    commit_2 = make_commit(sha="bar")
+    commit_3 = make_commit(sha="baz")
+    make_check_run(
+        ref=commit_2.sha, name="pytest", conclusion=CheckRunConclusion.FAILURE
+    )
+    make_check_run(
+        ref=commit_3.sha, name="pytest", conclusion=CheckRunConclusion.SUCCESS
+    )
+
+    deployed_commit = maybe_deploy_next(
+        client=client,
+        environment="prod",
+        conditions=[
+            RequiredCheckRun(type="check-run", name="pytest"),
+        ],
+    )
+    assert deployed_commit == commit_3

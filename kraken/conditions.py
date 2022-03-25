@@ -9,6 +9,7 @@ class RequiredCheckRun(BaseModel):
     type: Literal["check-run"]
     name: str
 
+    @property
     def description(self) -> str:
         return f"check-run {self.name}"
 
@@ -17,6 +18,7 @@ class RequiredDeploy(BaseModel):
     type: Literal["deploy"]
     environment: str
 
+    @property
     def description(self) -> str:
         return f"deploy to {self.environment}"
 
