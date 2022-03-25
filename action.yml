@@ -1,0 +1,11 @@
+name: 'Kraken deploy'
+description: 'Create GitHub deployments'
+inputs:
+  environments:
+    description: 'Configuration for the different environments'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.environments }}
