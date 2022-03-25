@@ -9,10 +9,16 @@ class RequiredCheckRun(BaseModel):
     type: Literal["check-run"]
     name: str
 
+    def description(self) -> str:
+        return f"check-run {self.name}"
+
 
 class RequiredDeploy(BaseModel):
     type: Literal["deploy"]
     environment: str
+
+    def description(self) -> str:
+        return f"deploy to {self.environment}"
 
 
 Condition = RequiredCheckRun | RequiredDeploy
@@ -49,11 +55,16 @@ def check_deploy(*, client: Client, condition: RequiredDeploy, commit: Commit) -
 
 def check_condition(*, client: Client, condition: Condition, commit: Commit) -> bool:
     if isinstance(condition, RequiredDeploy):
-        return check_deploy(client=client, condition=condition, commit=commit)
+        result = check_deploy(client=client, condition=condition, commit=commit)
     elif isinstance(condition, RequiredCheckRun):
-        return check_check_run(client=client, condition=condition, commit=commit)
+        result = check_check_run(client=client, condition=condition, commit=commit)
+    else:
+        raise RuntimeError(f"Unsupported condition: {condition}")
 
-    raise RuntimeError(f"Unsupported condition: {condition}")
+    if not result:
+        print(f'Condition "{condition.description}" not satisfied')
+
+    return result
 
 
 def check_conditions(

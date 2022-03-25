@@ -16,6 +16,7 @@ def maybe_deploy_next(
 
     elif not latest_deployment.is_done:
 
+        print("Previous deployment is not done yet")
         return None
 
     else:
@@ -24,6 +25,7 @@ def maybe_deploy_next(
 
         undeployed_commits = client.get_commits_after(ref=latest_sha)
         if not undeployed_commits:
+            print("All commits have been deployed")
             return None
 
         # Always deploy the oldest commit that's not deployed yet. In the
@@ -34,6 +36,7 @@ def maybe_deploy_next(
     if not check_conditions(
         client=client, commit=commit_to_deploy, conditions=conditions
     ):
+        print("Conditions failed, not starting deploy")
         return None
 
     print(f"Create deployment: {commit_to_deploy}")
