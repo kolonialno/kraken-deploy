@@ -7,6 +7,6 @@ inputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  image: 'docker://ghcr.io/kolonialno/kraken-deploy:ljodal-docker-build'
+  image: 'docker://ghcr.io/kolonialno/kraken-deploy:latest'
   args:
     - ${{ inputs.environments }}
