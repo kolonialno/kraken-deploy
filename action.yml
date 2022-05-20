@@ -9,7 +9,7 @@ inputs:
     required: false
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/kolonialno/kraken-deploy:main'
+  image: 'docker://ghcr.io/kolonialno/kraken-deploy:${{ github.action_ref }}'
   args:
     - --branch=${{ inputs.branch }}
     - ${{ inputs.environments }}
