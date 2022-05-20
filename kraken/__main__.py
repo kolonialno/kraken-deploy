@@ -16,6 +16,14 @@ class EnvironmentConfig(pydantic.BaseModel):
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--branch",
+        type=str,
+        help=(
+            "Branch to deploy from. If not specified or "
+            "empty the project's default branch is used"
+        ),
+    )
+    parser.add_argument(
         "environments",
         type=str,
         help="JSON containing configuration for each environments",
@@ -37,6 +45,7 @@ def main() -> None:
             client=client,
             environment=environment.name,
             conditions=environment.conditions,
+            branch=args.branch if args.branch else None,
         )
 
 

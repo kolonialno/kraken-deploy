@@ -4,8 +4,12 @@ inputs:
   environments:
     description: 'Configuration for the different environments'
     required: true
+  branch:
+    description: "Branch to deploy commits from, defaults to the project's default branch"
+    required: false
 runs:
   using: 'docker'
   image: 'docker://ghcr.io/kolonialno/kraken-deploy:main'
   args:
+    - --branch=${{ inputs.branch }}
     - ${{ inputs.environments }}

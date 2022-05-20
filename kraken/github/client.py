@@ -19,10 +19,10 @@ class Client(Protocol):
     def create_deployment(self, *, environment: str, commit: str) -> None:
         ...
 
-    def get_commits(self, *, page: int = ...) -> list[Commit]:
+    def get_commits(self, *, page: int = ..., branch: str | None = ...) -> list[Commit]:
         ...
 
-    def get_commits_after(self, *, ref: str) -> list[Commit]:
+    def get_commits_after(self, *, ref: str, branch: str | None = ...) -> list[Commit]:
         ...
 
     def get_check_runs(self, *, ref: str) -> list[CheckRun]:
@@ -65,21 +65,23 @@ class GithubClient:
         return Deployment.parse_obj(deployment)
 
     @functools.cache  # noqa: B019
-    def get_commits(self, *, page: int = 1) -> list[Commit]:
+    def get_commits(self, *, page: int = 1, branch: str | None = None) -> list[Commit]:
 
-        data = self._request(
-            "GET", f"/repos/{self.repo}/commits", params={"page": str(page)}
-        )
+        params = {"page": str(page)}
+        if branch:
+            params["branch"] = branch
+
+        data = self._request("GET", f"/repos/{self.repo}/commits", params=params)
 
         return parse_obj_as(list[Commit], data)
 
     @functools.cache  # noqa: B019
-    def get_commits_after(self, *, ref: str) -> list[Commit]:
+    def get_commits_after(self, *, ref: str, branch: str | None = None) -> list[Commit]:
         commits: list[Commit] = []
         # Load commits until we find the last deployed commit
         i = 1
         while not any(commit.sha == ref for commit in commits):
-            commits.extend(self.get_commits(page=i))
+            commits.extend(self.get_commits(page=i, branch=branch))
             i += 1
 
         return list(itertools.takewhile(lambda commit: commit.sha != ref, commits))
