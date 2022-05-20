@@ -6,6 +6,6 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/kolonialno/kraken-deploy:latest'
+  image: 'docker://ghcr.io/kolonialno/kraken-deploy:main'
   args:
     - ${{ inputs.environments }}
