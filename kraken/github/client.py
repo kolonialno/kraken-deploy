@@ -94,7 +94,12 @@ class GithubClient:
         self._request(
             "POST",
             f"/repos/{self.repo}/deployments",
-            data={"environment": environment, "ref": commit},
+            data={
+                "environment": environment,
+                "ref": commit,
+                "auto_merge": False,
+                "required_contexts": [],
+            },
         )
 
     @functools.cache  # noqa: B019
