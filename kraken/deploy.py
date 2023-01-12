@@ -3,11 +3,15 @@ from .github import Client, Commit
 
 
 def maybe_deploy_next(
-    *, client: Client, environment: str, conditions: list[Condition]
+    *,
+    client: Client,
+    environment: str,
+    conditions: list[Condition],
+    branch: str | None = None,
 ) -> Commit | None:
 
     latest_deployment = client.get_latest_deployment(environment=environment)
-    commits = client.get_commits()
+    commits = client.get_commits(branch=branch)
 
     if latest_deployment is None:
 
@@ -22,7 +26,7 @@ def maybe_deploy_next(
     else:
 
         latest_sha = latest_deployment.sha
-        undeployed_commits = client.get_commits_after(ref=latest_sha)
+        undeployed_commits = client.get_commits_after(ref=latest_sha, branch=branch)
 
     if not undeployed_commits:
         print("All commits have been deployed")

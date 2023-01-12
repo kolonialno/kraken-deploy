@@ -1,4 +1,5 @@
 import itertools
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Callable
 
@@ -10,7 +11,7 @@ from kraken.github.types import CheckRun, DeploymentState, DeploymentStatus
 
 class MockClient:
     def __init__(self) -> None:
-        self.commits: list[Commit] = []
+        self.commits: dict[str, list[Commit]] = defaultdict(lambda: [])
         self.deployments: dict[str, list[Deployment]] = {}
         self.check_runs: dict[str, list[CheckRun]] = {}
 
@@ -27,7 +28,9 @@ class MockClient:
         return deployments[0] if deployments else None
 
     def create_deployment(self, *, environment: str, commit: str) -> None:
-        assert any(c.sha == commit for c in self.commits)
+        assert any(
+            c.sha == commit for commits in self.commits.values() for c in commits
+        )
         self.deployments.setdefault(environment, [])
         self.deployments[environment].insert(
             0,
@@ -42,15 +45,19 @@ class MockClient:
             ),
         )
 
-    def get_commits(self, *, page: int = 1) -> list[Commit]:
+    def get_commits(self, *, page: int = 1, branch: str | None = None) -> list[Commit]:
         assert page > 0
         limit = 1
         offset = (page - 1) * limit
 
-        return self.commits[offset : offset + limit]
+        return self.commits[branch or "main"][offset : offset + limit]
 
-    def get_commits_after(self, *, ref: str) -> list[Commit]:
-        return list(itertools.takewhile(lambda commit: commit.sha != ref, self.commits))
+    def get_commits_after(self, *, ref: str, branch: str | None = None) -> list[Commit]:
+        return list(
+            itertools.takewhile(
+                lambda commit: commit.sha != ref, self.commits[branch or "main"]
+            )
+        )
 
     def get_check_runs(self, *, ref: str) -> list[CheckRun]:
         return self.check_runs.get(ref, [])
@@ -63,8 +70,10 @@ def client() -> Client:
 
 @pytest.fixture
 def make_commit(client: MockClient) -> Callable[..., Commit]:
-    def inner(*, sha: str) -> Commit:
-        assert not any(c.sha == sha for c in client.commits)
+    def inner(*, sha: str, branch: str | None = None) -> Commit:
+        assert not any(
+            c.sha == sha for commits in client.commits.values() for c in commits
+        )
         user = {"name": "John Doe", "email": "john@example.com"}
         commit = Commit.parse_obj(
             {
@@ -77,7 +86,7 @@ def make_commit(client: MockClient) -> Callable[..., Commit]:
                 },
             }
         )
-        client.commits.insert(0, commit)
+        client.commits[branch or "main"].insert(0, commit)
         return commit
 
     return inner
