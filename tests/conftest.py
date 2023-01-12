@@ -103,7 +103,7 @@ def make_check_run(client: MockClient) -> Callable[..., None]:
 
 
 @pytest.fixture
-def create_deployment_status(client: MockClient):
+def create_deployment_status(client: MockClient) -> Callable[..., DeploymentStatus]:
     def inner(*, environment: str, state: DeploymentState) -> DeploymentStatus:
         assert environment in client.deployments, "Deployment must exist"
         status = DeploymentStatus(state=state, description="", log_url="")
@@ -115,7 +115,9 @@ def create_deployment_status(client: MockClient):
 
 
 @pytest.fixture
-def start_deploy(create_deployment_status: Callable[..., DeploymentStatus]):
+def start_deploy(
+    create_deployment_status: Callable[..., DeploymentStatus]
+) -> Callable[..., DeploymentStatus]:
     def inner(*, environment: str) -> DeploymentStatus:
         return create_deployment_status(
             environment=environment, state=DeploymentState.IN_PROGRESS
@@ -125,7 +127,9 @@ def start_deploy(create_deployment_status: Callable[..., DeploymentStatus]):
 
 
 @pytest.fixture
-def finish_deploy(create_deployment_status: Callable[..., DeploymentStatus]):
+def finish_deploy(
+    create_deployment_status: Callable[..., DeploymentStatus]
+) -> Callable[..., DeploymentStatus]:
     def inner(*, environment: str) -> DeploymentStatus:
         return create_deployment_status(
             environment=environment, state=DeploymentState.SUCCESS
@@ -135,7 +139,9 @@ def finish_deploy(create_deployment_status: Callable[..., DeploymentStatus]):
 
 
 @pytest.fixture
-def fail_deploy(create_deployment_status: Callable[..., DeploymentStatus]):
+def fail_deploy(
+    create_deployment_status: Callable[..., DeploymentStatus]
+) -> Callable[..., DeploymentStatus]:
     def inner(*, environment: str) -> DeploymentStatus:
         return create_deployment_status(
             environment=environment, state=DeploymentState.FAILURE

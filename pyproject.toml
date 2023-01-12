@@ -31,6 +31,7 @@ src_paths= ["kraken", "test"]
 
 [tool.mypy]
 python_version = "3.10"
+strict = true
 files = ["kraken", "tests"]
 plugins = ["pydantic.mypy"]
 

@@ -104,7 +104,7 @@ class GithubClient:
         path: str,
         *,
         params: dict[str, str] | None = None,
-        data: dict | None = None,
+        data: Any | None = None,
     ) -> Any:
         """
         Perform an HTTP request against the github API and return the decoded json.
