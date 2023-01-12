@@ -1,3 +1,4 @@
+import functools
 import itertools
 import json
 from typing import Any, Protocol
@@ -34,6 +35,7 @@ class GithubClient:
         self.base_url = base_url
         self.token = token
 
+    @functools.cache  # noqa: B019
     def get_latest_deployment(
         self, *, environment: str, ref: str | None = None
     ) -> Deployment | None:
@@ -62,6 +64,7 @@ class GithubClient:
 
         return Deployment.parse_obj(deployment)
 
+    @functools.cache  # noqa: B019
     def get_commits(self, *, page: int = 1) -> list[Commit]:
 
         data = self._request(
@@ -70,6 +73,7 @@ class GithubClient:
 
         return parse_obj_as(list[Commit], data)
 
+    @functools.cache  # noqa: B019
     def get_commits_after(self, *, ref: str) -> list[Commit]:
         commits: list[Commit] = []
         # Load commits until we find the last deployed commit
@@ -90,6 +94,7 @@ class GithubClient:
             data={"environment": environment, "ref": commit},
         )
 
+    @functools.cache  # noqa: B019
     def get_check_runs(self, *, ref: str) -> list[CheckRun]:
 
         response = self._request(
