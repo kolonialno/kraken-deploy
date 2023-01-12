@@ -9,7 +9,7 @@ COPY pyproject.toml poetry.toml poetry.lock ./
 ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
-    POETRY_VERSION=1.1.7
+    POETRY_VERSION=1.3.2
 
 RUN apk add --no-cache gcc libffi-dev musl-dev openssl-dev cargo
 RUN pip install "poetry==$POETRY_VERSION"
