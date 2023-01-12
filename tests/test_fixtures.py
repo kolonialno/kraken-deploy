@@ -8,7 +8,7 @@ def test_commit(client: Client, commit: Commit) -> None:
     assert commit in client.get_commits()
 
 
-def test_make_commit(client: Client, make_commit: Callable) -> None:
+def test_make_commit(client: Client, make_commit: Callable[..., Commit]) -> None:
     assert client.get_commits(page=1) == []
     commit1 = make_commit(sha="foo")
     assert client.get_commits(page=1) == [commit1]
