@@ -126,7 +126,7 @@ class GithubClient:
         request = Request(method=method, url=url, data=request_data)
         request.add_header("Authorization", f"Bearer {self.token}")
 
-        with urlopen(request) as response:
+        with urlopen(request, timeout=10) as response:
             # urlopen should raise an exception if the status is non-200
             assert 100 < response.status < 300
 
