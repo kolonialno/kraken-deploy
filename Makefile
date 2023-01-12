@@ -1,4 +1,4 @@
-all : black mypy isort flake8
+all : black mypy isort flake8 pytest
 
 .PHONY: black
 black:
@@ -15,3 +15,8 @@ isort:
 .PHONY: flake8
 flake8:
 	flake8 kraken tests
+
+
+.PHONY: pytest
+pytest:
+	pytest
